@@ -1,0 +1,39 @@
+#!/usr/bin/expect -f
+
+set IP [lrange $argv 0 0]
+set USERN [lrange $argv 1 1]
+set ADMIN [lrange $argv 2 2]
+set SHARE_IP [lrange $argv 3 3]
+set DATES [exec date "+%Y.%m.%d/%H:%M:%S"]
+set USER_LOG "/tmp/share/userlog"
+spawn ssh $ADMIN@$IP
+expect -re "\\$ $"
+send "mkdir -m 777 /tmp/share > /dev/null 2>&1\r"
+expect -re "\\$"
+send "sudo mount.nfs $SHARE_IP:/etc/uuman/log /tmp/share\r"
+expect -re "\\$"
+send "date > $USER_LOG/$USERN.log\r"
+expect -re "\\$"
+send "uname -a >> $USER_LOG/$USERN.log\r"
+expect -re "\\$"
+send "echo Username:$USERN >> $USER_LOG/$USERN.log\r"
+expect -re "\\$"
+send "echo IP:$IP >> $USER_LOG/$USERN.log\r"
+expect -re "\\$"
+send "(echo -n Hostname:;hostname) >> $USER_LOG/$USERN.log\r"
+expect -re "\\$"
+send "(cat /etc/issue.net) >> $USER_LOG/$USERN.log\r"
+expect -re "\\$"
+send "(echo -n Count of packages for update:;apt-show-versions -u | wc -l) >> $USER_LOG/$USERN.log\r"
+expect -re "\\$"
+send "echo >> $USER_LOG/$USERN.log\r"
+expect -re "\\$"
+send "apt-show-versions -u | column -t >> $USER_LOG/$USERN.log\r"
+expect -re "\\$"
+send "(echo -n $USERN;echo -n ' |' $IP '| ';cat /etc/issue.net | sed 's/ /_/g';echo -n AvailableUpdates\:;apt-show-versions -u | wc -l ;echo -n $DATES) > /tmp/share/.menu_log/$IP.log\r"
+expect -re "\\$"
+send "sudo umount -f /tmp/share\r"
+expect -re "\\$"
+send "history -c\r"
+expect -re "\\$"
+exit 0
